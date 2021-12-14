@@ -1,12 +1,19 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Data;
 using System.IO;
 using System.Net;
 using System.Text;
+using System.Linq;
 
 namespace BesterAufwandNutzen {
     class Program {
         static void Main(string[] args) {
+
+            Dictionary<string, double> durations = new Dictionary<string, double>();
+            Dictionary<string, decimal> costs = new Dictionary<string, decimal>();
+            Dictionary<string, double> footPrints = new Dictionary<string, double>();
+
             double distance;
             bool isCarPresent;
             bool isBahncardPresent;
@@ -48,22 +55,43 @@ namespace BesterAufwandNutzen {
 
             Auto auto = new Auto( Jahreszeit.Spring, packageWeight, 130, distance, -1, isCarPresent, 20.0m, 10.0m);
             auto.CalculateBestWay(true, true, true);
+            durations.Add("Auto", auto.Duration);
+            costs.Add("Auto", auto.TotalCosts);
+            footPrints.Add("Auto", auto.FootPrint);
             Console.WriteLine("__________________________________________________________");
 
-            ZuFuss zuFuss = new ZuFuss(Jahreszeit.Spring, 500, 10, 400, -1);
+            ZuFuss zuFuss = new ZuFuss(Jahreszeit.Spring, packageWeight, 10, distance, -1);
             zuFuss.CalculateBestWay(true, true, true);
+            durations.Add("ZuFuss", zuFuss.Duration);
+            costs.Add("ZuFuss", zuFuss.TotalCosts);
+            footPrints.Add("ZuFuss", zuFuss.FootPrint);
             Console.WriteLine("__________________________________________________________");
 
-            Zug bahnCardVorhanden = new Zug((Jahreszeit)1, 500, 200, 400, -1, true, 130);
-            bahnCardVorhanden.CalculateBestWay(true, true, true);
-            Zug keineBahncard = new Zug((Jahreszeit)1, 500, 200, 400, -1, false, 130);
-            keineBahncard.CalculateBestWay(true, true, true);
+            Zug zug = new Zug((Jahreszeit)1, packageWeight, 200, distance, -1, isBahncardPresent, 130);
+            zug.CalculateBestWay(true, true, true);
+            durations.Add("Zug", zug.Duration);
+            costs.Add("Zug", zug.TotalCosts);
+            footPrints.Add("Zug", zug.FootPrint);
             Console.WriteLine("__________________________________________________________");
 
-            Flugzeug mitFlugMeilen = new Flugzeug((Jahreszeit)1, 500, 800, 400, -1, true, 60);
-            mitFlugMeilen.CalculateBestWay(true, true, true);
-            Flugzeug ohneFlugMeilen = new Flugzeug((Jahreszeit)1, 500, 800, 400, -1, false, 60);
-            ohneFlugMeilen.CalculateBestWay(true, true, true);
+            Flugzeug flugzeug = new Flugzeug((Jahreszeit)1, packageWeight, 800, distance, -1, areFlightMilesPresent, 60);
+            flugzeug.CalculateBestWay(true, true, true);
+            durations.Add("Flugzeug", flugzeug.Duration);
+            costs.Add("Flugzeug", flugzeug.TotalCosts);
+            footPrints.Add("Flugzeug", flugzeug.FootPrint);
+            Console.WriteLine("===========================================================");
+
+            string fastestWay = durations.Where(d => d.Value == durations.Min(d => d.Value)).Select(d => d.Key).First().ToString();
+            var cheapestWay = costs.Where(c => c.Value == costs.Min(c => c.Value)).Select(c => c.Key).First().ToString();
+            var healthiestWay = footPrints.Where(f => f.Value == footPrints.Min(f => f.Value)).Select(f => f.Key).First().ToString();
+
+            Console.WriteLine("Am schnellsten: " + fastestWay);
+            Console.WriteLine("Am günstigten: " + cheapestWay);
+            Console.WriteLine("Am besten für die Umwelt: " + healthiestWay);
+            if (packageWeight > 20)
+                Console.WriteLine("Aufgrund der Schwere des Gepäcks empfehlen wir Ihnen, nicht zu Fuß zu gehen.");
         }
+
+        
     }
 }
